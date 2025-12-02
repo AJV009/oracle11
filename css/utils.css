@@ -1,0 +1,115 @@
+/**
+ * Oracle11 - Utilities (Toast, Loading, Responsive)
+ */
+
+/* Toast */
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.toast {
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: 12px 20px;
+  color: var(--color-text);
+  font-size: 0.9rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  animation: slideIn var(--transition-normal) ease;
+  max-width: 320px;
+}
+
+.toast.success {
+  border-color: var(--color-green);
+  background: linear-gradient(135deg, rgba(22, 163, 74, 0.2) 0%, var(--color-bg-secondary) 100%);
+}
+
+.toast.error {
+  border-color: var(--color-red);
+  background: linear-gradient(135deg, rgba(220, 38, 38, 0.2) 0%, var(--color-bg-secondary) 100%);
+}
+
+.toast.info {
+  border-color: var(--color-gold);
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.15) 0%, var(--color-bg-secondary) 100%);
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(100%); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.toast.hiding {
+  animation: slideOut var(--transition-normal) ease forwards;
+}
+
+@keyframes slideOut {
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: 0; transform: translateX(100%); }
+}
+
+/* Loading */
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 20, 25, 0.8);
+  backdrop-filter: blur(4px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  z-index: 2000;
+  color: var(--color-text);
+}
+
+.loading-overlay.hidden { display: none; }
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--glass-border);
+  border-top-color: var(--color-gold);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Utilities */
+.hidden { display: none !important; }
+
+/* Responsive */
+@media (max-width: 600px) {
+  .app-container { padding: 16px; }
+  .card { padding: 24px 20px; }
+  .title { font-size: 2.2rem; }
+  .view-title { font-size: 1.25rem; }
+  .carousel-display { height: 70px; }
+  .carousel-item { font-size: 1.25rem; }
+
+  .prediction-matrix th,
+  .prediction-matrix td { padding: 10px 12px; }
+
+  .form-actions { flex-direction: column; }
+  .form-actions .btn { width: 100%; }
+
+  .toast-container { left: 16px; right: 16px; bottom: 16px; }
+  .toast { max-width: none; }
+
+  .input-group { flex-direction: column; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (hover: none) {
+  .carousel-btn:hover,
+  .back-btn:hover,
+  .btn:hover { transform: none; }
+  .prediction-matrix tbody tr:hover { background: transparent; }
+}

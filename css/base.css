@@ -1,0 +1,113 @@
+/**
+ * Oracle11 - Base Styles (Variables, Reset, Typography)
+ */
+
+:root {
+  --color-bg: #0f1419;
+  --color-bg-secondary: #1a2332;
+  --color-red: #dc2626;
+  --color-red-dark: #991b1b;
+  --color-red-light: #fca5a5;
+  --color-green: #16a34a;
+  --color-green-dark: #166534;
+  --color-green-light: #86efac;
+  --color-gold: #fbbf24;
+  --color-gold-dark: #b45309;
+  --color-white: #ffffff;
+  --color-snow: #f8fafc;
+  --color-text: #e2e8f0;
+  --color-text-muted: #94a3b8;
+
+  --glass-bg: rgba(255, 255, 255, 0.05);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+
+  --font-display: 'Mountains of Christmas', cursive;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-full: 9999px;
+
+  --transition-fast: 150ms ease;
+  --transition-normal: 250ms ease;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  font-family: var(--font-body);
+  background: #000000;
+  color: var(--color-text);
+  min-height: 100vh;
+  overflow-x: hidden;
+  line-height: 1.6;
+}
+
+/* Typography */
+.title {
+  font-family: var(--font-display);
+  font-size: 3rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.title.festive {
+  background: linear-gradient(135deg, var(--color-red-light) 0%, var(--color-gold) 50%, var(--color-green-light) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.subtitle {
+  text-align: center;
+  color: var(--color-text-muted);
+  margin-bottom: 32px;
+}
+
+.view-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--color-white);
+}
+
+.section-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.section-desc {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  margin-bottom: 16px;
+}
+
+.instruction {
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  margin-bottom: 8px;
+}
+
+.warning-note {
+  text-align: center;
+  color: var(--color-red-light);
+  font-size: 0.8rem;
+  margin-bottom: 16px;
+  padding: 8px 12px;
+  background: rgba(220, 38, 38, 0.1);
+  border: 1px solid rgba(220, 38, 38, 0.2);
+  border-radius: var(--radius-sm);
+}

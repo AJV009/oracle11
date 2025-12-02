@@ -1,0 +1,10 @@
+# Development files
+prompt.txt
+.env
+
+# Sensitive config (use config.example.js as template)
+config.js
+
+# OS files
+.DS_Store
+Thumbs.db
