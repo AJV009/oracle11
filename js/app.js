@@ -17,6 +17,12 @@ function clearAllCaches() {
 
 // Check cache version and invalidate if outdated
 function checkCacheVersion() {
+  // Guard against Cloudflare Rocket Loader or other script loading issues
+  if (typeof CONFIG === 'undefined' || !CONFIG.CACHE_VERSION) {
+    console.warn('CONFIG not loaded yet, skipping cache version check');
+    return;
+  }
+
   const storedVersion = localStorage.getItem('oracle11_version');
   const currentVersion = CONFIG.CACHE_VERSION.toString();
 
