@@ -16,6 +16,16 @@ const PredictView = {
 
     this.render();
     this.bindEvents();
+    this.updateLeaderboardButton();
+  },
+
+  updateLeaderboardButton() {
+    const btn = document.getElementById('view-leaderboard');
+    if (isLeaderboardAccessible()) {
+      btn.classList.remove('hidden');
+    } else {
+      btn.classList.add('hidden');
+    }
   },
 
   render() {
@@ -71,7 +81,14 @@ const PredictView = {
       // Use safe merge with verify+retry
       state.data = await API.savePrediction(state.currentCodename, prediction);
       Toast.show('Predictions saved!', 'success');
-      Router.navigate('leaderboard');
+
+      // Navigate to leaderboard if accessible, otherwise stay on predict
+      if (isLeaderboardAccessible()) {
+        Router.navigate('leaderboard');
+      } else {
+        this.updateLeaderboardButton();
+        Toast.show('Leaderboard will be available after more submissions', 'info');
+      }
     } catch (error) {
       Toast.show('Failed to save. Please try again.', 'error');
     } finally {

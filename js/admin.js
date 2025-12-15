@@ -20,6 +20,7 @@ const AdminView = {
     });
     document.getElementById('declare-winners').addEventListener('click', () => this.declareWinners());
     document.getElementById('reset-all').addEventListener('click', () => this.resetAll());
+    document.getElementById('leaderboard-toggle').addEventListener('change', e => this.toggleLeaderboard(e.target.checked));
   },
 
   async authenticate() {
@@ -114,6 +115,47 @@ const AdminView = {
       <div class="stat-card"><div class="stat-value">${confirmed}/${total}</div><div class="stat-label">Confirmed</div></div>
       <div class="stat-card"><div class="stat-value">${confirmed === total ? 'Complete' : confirmed > 0 ? 'In Progress' : 'Pending'}</div><div class="stat-label">Status</div></div>
     `;
+
+    // Update leaderboard toggle state
+    this.updateLeaderboardToggle();
+  },
+
+  updateLeaderboardToggle() {
+    const toggle = document.getElementById('leaderboard-toggle');
+    const statusEl = document.getElementById('leaderboard-status');
+    const submissions = getSubmissionCount();
+    const setting = state.data?.leaderboardVisible;
+
+    // Set toggle checked state
+    if (setting === true) {
+      toggle.checked = true;
+      statusEl.textContent = 'Visible to all participants';
+    } else if (setting === false) {
+      toggle.checked = false;
+      statusEl.textContent = `Hidden (${submissions} submission${submissions !== 1 ? 's' : ''})`;
+    } else {
+      // Auto mode (null/undefined)
+      const autoEnabled = submissions >= 4;
+      toggle.checked = autoEnabled;
+      statusEl.textContent = autoEnabled
+        ? `Auto-enabled (${submissions} submissions)`
+        : `Hidden until 4 submissions (${submissions} so far)`;
+    }
+  },
+
+  async toggleLeaderboard(visible) {
+    Loading.show();
+    try {
+      state.data = await API.saveAdminData({ leaderboardVisible: visible });
+      Toast.show(visible ? 'Leaderboard visible' : 'Leaderboard hidden', 'success');
+      this.updateLeaderboardToggle();
+    } catch (error) {
+      Toast.show('Failed to update setting', 'error');
+      // Revert toggle
+      this.updateLeaderboardToggle();
+    } finally {
+      Loading.hide();
+    }
   },
 
   async declareWinners() {

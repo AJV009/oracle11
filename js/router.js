@@ -68,6 +68,13 @@ const Router = {
       return;
     }
 
+    // Block leaderboard access if not yet accessible (and reveal hasn't started)
+    if (hash === 'leaderboard' && !hasRevealStarted() && !isLeaderboardAccessible()) {
+      Toast.show('Leaderboard not yet available', 'info');
+      this.navigate('predict');
+      return;
+    }
+
     // Require codename for predict view
     if (hash === 'predict' && !state.currentCodename && !hasRevealStarted()) {
       this.navigate('selector');

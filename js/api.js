@@ -137,6 +137,7 @@ const API = {
       predictions: {},
       actualPairings: null,
       winnersRevealed: false,
+      leaderboardVisible: false,  // Admin toggle: null=auto (4+ submissions), true=show, false=hide
       lastUpdated: new Date().toISOString()
     };
   }

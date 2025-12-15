@@ -78,3 +78,25 @@ function getSantaForRecipient(recipient) {
   const actual = state.data?.actualPairings || {};
   return Object.keys(actual).find(santa => actual[santa] === recipient) || null;
 }
+
+// Check if leaderboard is accessible to participants
+// Rules:
+// - If admin set leaderboardVisible to true -> show
+// - If admin set leaderboardVisible to false -> hide (until threshold)
+// - Default (undefined): auto-show after 4 submissions
+function isLeaderboardAccessible() {
+  const setting = state.data?.leaderboardVisible;
+
+  // Admin explicit override
+  if (setting === true) return true;
+  if (setting === false) return false;
+
+  // Default: auto-enable after 4 submissions
+  const submissionCount = Object.keys(state.data?.predictions || {}).length;
+  return submissionCount >= 4;
+}
+
+// Get submission count for display
+function getSubmissionCount() {
+  return Object.keys(state.data?.predictions || {}).length;
+}
