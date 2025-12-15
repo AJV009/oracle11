@@ -5,6 +5,7 @@ const Selector = {
   track: null,
   dots: null,
   shuffledNames: [],
+  eventsBound: false,
 
   init() {
     this.track = document.querySelector('.carousel-track');
@@ -27,7 +28,10 @@ const Selector = {
     }
 
     this.render();
-    this.bindEvents();
+    if (!this.eventsBound) {
+      this.bindEvents();
+      this.eventsBound = true;
+    }
   },
 
   render() {
@@ -77,12 +81,14 @@ const Selector = {
   },
 
   prev() {
-    state.currentIndex = (state.currentIndex - 1 + state.participants.length) % state.participants.length;
+    const len = this.shuffledNames.length;
+    state.currentIndex = (state.currentIndex - 1 + len) % len;
     this.updatePosition();
   },
 
   next() {
-    state.currentIndex = (state.currentIndex + 1) % state.participants.length;
+    const len = this.shuffledNames.length;
+    state.currentIndex = (state.currentIndex + 1) % len;
     this.updatePosition();
   },
 
