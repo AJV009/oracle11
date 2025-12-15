@@ -2,43 +2,22 @@
  * Oracle11 - App Initialization
  */
 
-// Clear all oracle11 caches from localStorage
-function clearAllCaches() {
-  const keysToRemove = [];
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-    if (key && key.startsWith('oracle11_cache')) {
-      keysToRemove.push(key);
-    }
-  }
-  keysToRemove.forEach(key => localStorage.removeItem(key));
-  console.log(`Cleared ${keysToRemove.length} cached items`);
-}
+// Bump this to clear all user caches on next load
+const CACHE_VERSION = 2;
 
-// Check cache version and invalidate if outdated
-function checkCacheVersion() {
-  // Guard against Cloudflare Rocket Loader or other script loading issues
-  if (typeof CONFIG === 'undefined' || !CONFIG.CACHE_VERSION) {
-    console.warn('CONFIG not loaded yet, skipping cache version check');
-    return;
-  }
-
-  const storedVersion = localStorage.getItem('oracle11_version');
-  const currentVersion = CONFIG.CACHE_VERSION.toString();
-
-  if (storedVersion !== currentVersion) {
-    console.log(`Cache version mismatch (${storedVersion} → ${currentVersion}), clearing caches...`);
-    clearAllCaches();
-    // Also clear session storage to prevent stale state
+(function checkCacheVersion() {
+  const stored = localStorage.getItem('oracle11_version');
+  if (stored !== String(CACHE_VERSION)) {
+    // Clear all oracle11 caches
+    Object.keys(localStorage)
+      .filter(k => k.startsWith('oracle11_cache'))
+      .forEach(k => localStorage.removeItem(k));
     sessionStorage.clear();
-    localStorage.setItem('oracle11_version', currentVersion);
+    localStorage.setItem('oracle11_version', CACHE_VERSION);
   }
-}
+})();
 
 async function initApp() {
-  // Check cache version first - clears old incompatible caches
-  checkCacheVersion();
-
   Decorations.init();
   Toast.init();
   Loading.init();
