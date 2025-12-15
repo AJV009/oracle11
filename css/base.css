@@ -73,7 +73,7 @@ body {
 .subtitle {
   text-align: center;
   color: var(--color-text-muted);
-  margin-bottom: 32px;
+  margin-bottom: 12px;
 }
 
 .view-title {

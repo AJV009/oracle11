@@ -562,6 +562,14 @@
   padding-top: 48px;
 }
 
+#celebration-auth-title {
+  padding-top: 38px;
+}
+
+.matrix-instruction {
+  padding-bottom: 12px;
+}
+
 .celebration-back-btn {
   position: absolute;
   top: 16px;
