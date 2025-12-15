@@ -52,75 +52,122 @@ const AdminView = {
   render() {
     if (!this.isAuthenticated) return;
 
-    if (state.data?.winnersRevealed) {
+    const confirmedCount = getConfirmedCount();
+    const totalCount = state.participants.length;
+    const allRevealed = confirmedCount === totalCount;
+
+    if (allRevealed) {
       document.getElementById('admin-input-section').classList.add('hidden');
       document.getElementById('admin-revealed-section').classList.remove('hidden');
     } else {
       document.getElementById('admin-input-section').classList.remove('hidden');
       document.getElementById('admin-revealed-section').classList.add('hidden');
       this.renderMatrix();
+      this.updateButtonState(confirmedCount, totalCount);
     }
     this.renderStats();
   },
 
+  updateButtonState(confirmed, total) {
+    const btn = document.getElementById('declare-winners');
+    if (confirmed === 0) {
+      btn.textContent = 'Start Reveal';
+    } else if (confirmed < total) {
+      btn.textContent = `Update (${confirmed}/${total})`;
+    } else {
+      btn.textContent = 'Finalize Results';
+    }
+  },
+
   renderMatrix() {
     const body = document.getElementById('admin-matrix-body');
-    const existing = state.data?.actualPairings || {};
+    // Pairings stored as {santa: recipient} - matches UI display
+    const existingPairings = state.data?.actualPairings || {};
 
-    body.innerHTML = state.participants.map(recipient => `
-      <tr>
-        <td><span class="recipient-name">${recipient}</span></td>
-        <td>
-          <select data-recipient="${recipient}">
-            <option value="">Select...</option>
-            ${state.participants.map(g =>
-              `<option value="${g}" ${g === existing[recipient] ? 'selected' : ''}>${g}</option>`
-            ).join('')}
-          </select>
-        </td>
-      </tr>
-    `).join('');
+    body.innerHTML = state.participants.map(santa => {
+      const isConfirmed = existingPairings[santa] !== undefined;
+      return `
+        <tr class="${isConfirmed ? 'confirmed' : ''}">
+          <td>
+            <span class="santa-name">${santa}</span>
+            ${isConfirmed ? '<span class="confirmed-badge">confirmed</span>' : ''}
+          </td>
+          <td>
+            <select data-santa="${santa}">
+              <option value="">Select...</option>
+              ${state.participants.map(r =>
+                `<option value="${r}" ${r === existingPairings[santa] ? 'selected' : ''}>${r}</option>`
+              ).join('')}
+            </select>
+          </td>
+        </tr>
+      `;
+    }).join('');
   },
 
   renderStats() {
-    const count = Object.keys(state.data?.predictions || {}).length;
+    const submissions = Object.keys(state.data?.predictions || {}).length;
+    const confirmed = getConfirmedCount();
+    const total = state.participants.length;
     document.getElementById('admin-stats-grid').innerHTML = `
-      <div class="stat-card"><div class="stat-value">${count}</div><div class="stat-label">Submissions</div></div>
-      <div class="stat-card"><div class="stat-value">${state.participants.length}</div><div class="stat-label">Participants</div></div>
-      <div class="stat-card"><div class="stat-value">${state.data?.winnersRevealed ? 'Yes' : 'No'}</div><div class="stat-label">Revealed</div></div>
+      <div class="stat-card"><div class="stat-value">${submissions}</div><div class="stat-label">Submissions</div></div>
+      <div class="stat-card"><div class="stat-value">${confirmed}/${total}</div><div class="stat-label">Confirmed</div></div>
+      <div class="stat-card"><div class="stat-value">${confirmed === total ? 'Complete' : confirmed > 0 ? 'In Progress' : 'Pending'}</div><div class="stat-label">Status</div></div>
     `;
   },
 
   async declareWinners() {
-    const pairings = this.collectPairings();
-    const allSet = Object.keys(pairings).length === state.participants.length;
+    const currentPairings = this.collectPairings();
+    const existingPairings = state.data?.actualPairings || {};
 
-    if (!allSet) {
-      Toast.show('Please set all pairings before declaring winners', 'error');
+    // Merge: current selections override existing
+    const mergedPairings = { ...existingPairings, ...currentPairings };
+    const totalConfirmed = Object.keys(mergedPairings).length;
+
+    // Check if anything changed
+    const hasChanges = Object.keys(currentPairings).length > 0 ||
+      Object.keys(existingPairings).some(k => currentPairings[k] !== existingPairings[k]);
+
+    if (!hasChanges && totalConfirmed === Object.keys(existingPairings).length) {
+      Toast.show('No changes to save', 'error');
       return;
     }
 
-    if (!confirm('Declare winners? This cannot be undone.')) return;
+    const isFirst = Object.keys(existingPairings).length === 0;
+    const isFinal = totalConfirmed === state.participants.length;
+
+    let confirmMsg = isFirst
+      ? 'Start the reveal? This will lock all predictions.'
+      : isFinal
+        ? 'Finalize all results? This completes the reveal.'
+        : `Save ${totalConfirmed} pairing(s)?`;
+
+    if (!confirm(confirmMsg)) return;
 
     Loading.show();
     try {
       state.data = await API.saveAdminData({
-        actualPairings: pairings,
-        winnersRevealed: true
+        actualPairings: mergedPairings,
+        winnersRevealed: isFinal
       });
-      Toast.show('Winners declared!', 'success');
+      Toast.show(isFinal ? 'All results finalized!' : 'Pairings updated!', 'success');
       this.render();
     } catch (error) {
-      Toast.show('Failed to declare winners', 'error');
+      Toast.show('Failed to save pairings', 'error');
     } finally {
       Loading.hide();
     }
   },
 
   collectPairings() {
+    // Store as {santa: recipient} - matches UI display
     const pairings = {};
     document.getElementById('admin-matrix-body').querySelectorAll('select').forEach(s => {
-      if (s.value) pairings[s.dataset.recipient] = s.value;
+      const santa = s.dataset.santa;
+      const recipient = s.value;
+      if (recipient) {
+        pairings[santa] = recipient;  // Direct: santa → recipient
+      }
     });
     return pairings;
   },

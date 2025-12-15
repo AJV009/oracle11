@@ -4,16 +4,31 @@
 const API = {
   baseUrl: 'https://api.jsonbin.io/v3/b',
 
+  // Get celebration-specific cache keys
+  getCacheKey() {
+    return `oracle11_cache_${state.currentCelebration || 'default'}`;
+  },
+
+  getCacheTimeKey() {
+    return `oracle11_cache_time_${state.currentCelebration || 'default'}`;
+  },
+
   async fetchData(skipCache = false) {
-    const cached = localStorage.getItem('oracle11_cache');
-    const cacheTime = localStorage.getItem('oracle11_cache_time');
+    if (!state.binId) {
+      throw new Error('No celebration selected');
+    }
+
+    const cacheKey = this.getCacheKey();
+    const cacheTimeKey = this.getCacheTimeKey();
+    const cached = localStorage.getItem(cacheKey);
+    const cacheTime = localStorage.getItem(cacheTimeKey);
 
     if (!skipCache && cached && cacheTime && Date.now() - parseInt(cacheTime) < 30000) {
       return JSON.parse(cached);
     }
 
     try {
-      const response = await fetch(`${this.baseUrl}/${CONFIG.JSONBIN_BIN_ID}/latest`, {
+      const response = await fetch(`${this.baseUrl}/${state.binId}/latest`, {
         headers: { 'X-Access-Key': CONFIG.JSONBIN_API_KEY }
       });
 
@@ -33,8 +48,12 @@ const API = {
   },
 
   async saveData(data) {
+    if (!state.binId) {
+      throw new Error('No celebration selected');
+    }
+
     try {
-      const response = await fetch(`${this.baseUrl}/${CONFIG.JSONBIN_BIN_ID}`, {
+      const response = await fetch(`${this.baseUrl}/${state.binId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -100,8 +119,17 @@ const API = {
   },
 
   updateCache(data) {
-    localStorage.setItem('oracle11_cache', JSON.stringify(data));
-    localStorage.setItem('oracle11_cache_time', Date.now().toString());
+    const cacheKey = this.getCacheKey();
+    const cacheTimeKey = this.getCacheTimeKey();
+    localStorage.setItem(cacheKey, JSON.stringify(data));
+    localStorage.setItem(cacheTimeKey, Date.now().toString());
+  },
+
+  clearCache() {
+    const cacheKey = this.getCacheKey();
+    const cacheTimeKey = this.getCacheTimeKey();
+    localStorage.removeItem(cacheKey);
+    localStorage.removeItem(cacheTimeKey);
   },
 
   getDefaultData() {

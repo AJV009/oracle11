@@ -10,18 +10,39 @@ async function initApp() {
   Loading.show();
 
   try {
+    // Load celebrations configuration
     const response = await fetch('drawnames.json');
     const data = await response.json();
-    state.participants = data.participants;
+    state.celebrations = data.celebrations;
 
-    try {
-      state.data = await API.fetchData();
-    } catch (e) {
-      state.data = API.getDefaultData();
-      console.log('Using default data structure');
+    // Restore session state if available
+    const savedCelebration = sessionStorage.getItem('oracle11_celebration');
+    const savedAuth = sessionStorage.getItem('oracle11_celebration_auth');
+
+    if (savedCelebration && savedAuth === 'true' && state.celebrations[savedCelebration]) {
+      // Restore celebration context
+      setCelebration(savedCelebration);
+      state.celebrationAuth = true;
+
+      // Restore codename if saved
+      const savedCodename = sessionStorage.getItem('oracle11_codename');
+      if (savedCodename && state.participants.includes(savedCodename)) {
+        state.currentCodename = savedCodename;
+        state.currentIndex = state.participants.indexOf(savedCodename);
+      }
+
+      // Load celebration data
+      try {
+        state.data = await API.fetchData();
+      } catch (e) {
+        state.data = API.getDefaultData();
+        console.log('Using default data structure');
+      }
+
+      // Initialize selector for restored session
+      Selector.init();
     }
 
-    Selector.init();
     Router.handleRoute();
   } catch (error) {
     console.error('Failed to initialize app:', error);

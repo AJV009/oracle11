@@ -217,7 +217,8 @@
 
 .prediction-matrix tbody tr:last-child td { border-bottom: none; }
 
-.recipient-name {
+.recipient-name,
+.santa-name {
   font-weight: 500;
   color: var(--color-white);
 }

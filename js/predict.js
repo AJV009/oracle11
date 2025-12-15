@@ -3,32 +3,33 @@
  */
 const PredictView = {
   matrixBody: null,
+  shuffledSantas: [],
   shuffledRecipients: [],
-  shuffledGifters: [],
 
   init() {
     this.matrixBody = document.getElementById('matrix-body');
     document.getElementById('current-codename').textContent = state.currentCodename;
 
-    // Shuffle both rows and dropdown options
+    // Shuffle both rows (Santas) and dropdown options (Recipients)
+    this.shuffledSantas = shuffle(state.participants);
     this.shuffledRecipients = shuffle(state.participants);
-    this.shuffledGifters = shuffle(state.participants);
 
     this.render();
     this.bindEvents();
   },
 
   render() {
-    const existing = state.data?.predictions?.[state.currentCodename]?.guesses || {};
+    // Guesses stored as {santa: recipient} - matches UI display
+    const existingGuesses = state.data?.predictions?.[state.currentCodename]?.guesses || {};
 
-    this.matrixBody.innerHTML = this.shuffledRecipients.map(recipient => `
+    this.matrixBody.innerHTML = this.shuffledSantas.map(santa => `
       <tr>
-        <td><span class="recipient-name">${recipient}</span></td>
+        <td><span class="santa-name">${santa}</span></td>
         <td>
-          <select data-recipient="${recipient}">
+          <select data-santa="${santa}">
             <option value="">Select...</option>
-            ${this.shuffledGifters.map(gifter =>
-              `<option value="${gifter}" ${gifter === existing[recipient] ? 'selected' : ''}>${gifter}</option>`
+            ${this.shuffledRecipients.map(recipient =>
+              `<option value="${recipient}" ${recipient === existingGuesses[santa] ? 'selected' : ''}>${recipient}</option>`
             ).join('')}
           </select>
         </td>
@@ -45,9 +46,14 @@ const PredictView = {
     const guesses = {};
     let hasEmpty = false;
 
+    // Store as {santa: recipient} - matches UI display
     this.matrixBody.querySelectorAll('select').forEach(select => {
       if (!select.value) hasEmpty = true;
-      guesses[select.dataset.recipient] = select.value;
+      const santa = select.dataset.santa;
+      const recipient = select.value;
+      if (recipient) {
+        guesses[santa] = recipient;  // Direct: santa → recipient
+      }
     });
 
     if (hasEmpty) {

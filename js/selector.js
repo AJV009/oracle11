@@ -10,6 +10,13 @@ const Selector = {
     this.track = document.querySelector('.carousel-track');
     this.dots = document.querySelector('.name-dots');
 
+    // Display current celebration name
+    const celebrationNameEl = document.getElementById('current-celebration-name');
+    const celebration = getCurrentCelebration();
+    if (celebrationNameEl && celebration) {
+      celebrationNameEl.textContent = celebration.name;
+    }
+
     // Shuffle names for display
     this.shuffledNames = shuffle(state.participants);
 
@@ -44,6 +51,12 @@ const Selector = {
       }
     });
     document.getElementById('confirm-name').addEventListener('click', () => this.confirm());
+
+    // Change celebration button
+    const changeCelebrationBtn = document.getElementById('change-celebration');
+    if (changeCelebrationBtn) {
+      changeCelebrationBtn.addEventListener('click', () => this.changeCelebration());
+    }
 
     // Touch support
     let touchStartX = 0;
@@ -92,5 +105,15 @@ const Selector = {
     state.currentCodename = this.shuffledNames[state.currentIndex];
     sessionStorage.setItem('oracle11_codename', state.currentCodename);
     Router.navigate('predict');
+  },
+
+  changeCelebration() {
+    // Clear celebration session
+    clearCelebration();
+    sessionStorage.removeItem('oracle11_celebration');
+    sessionStorage.removeItem('oracle11_celebration_auth');
+    sessionStorage.removeItem('oracle11_codename');
+
+    Router.navigate('celebrations');
   }
 };

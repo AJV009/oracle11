@@ -17,43 +17,44 @@ const LeaderboardView = {
   },
 
   render() {
-    state.data?.winnersRevealed ? this.renderScores() : this.renderPredictions();
+    // Show scores if reveal has started (even partial)
+    hasRevealStarted() ? this.renderScores() : this.renderPredictions();
   },
 
   renderPredictions() {
     document.getElementById('predictions-leaderboard').classList.remove('hidden');
     document.getElementById('scores-leaderboard').classList.add('hidden');
 
-    // Aggregate votes
+    // Aggregate votes by Santa - data stored as {santa: recipient}
     const aggregated = {};
-    state.participants.forEach(r => { aggregated[r] = {}; });
+    state.participants.forEach(s => { aggregated[s] = {}; });
 
     Object.values(state.data?.predictions || {}).forEach(pred => {
-      Object.entries(pred.guesses || {}).forEach(([recipient, gifter]) => {
-        if (gifter && aggregated[recipient]) {
-          aggregated[recipient][gifter] = (aggregated[recipient][gifter] || 0) + 1;
+      Object.entries(pred.guesses || {}).forEach(([santa, recipient]) => {
+        if (recipient && aggregated[santa]) {
+          aggregated[santa][recipient] = (aggregated[santa][recipient] || 0) + 1;
         }
       });
     });
 
-    // Build two-column table
-    const rows = state.participants.map(recipient => {
-      const votes = Object.entries(aggregated[recipient] || {})
+    // Build two-column table: Santa → Predicted Recipients
+    const rows = state.participants.map(santa => {
+      const votes = Object.entries(aggregated[santa] || {})
         .sort((a, b) => b[1] - a[1])
         .slice(0, 3);
 
-      // Format santas - only show count if > 1
-      const santaList = votes.length
-        ? votes.map(([santa, count], i) => {
+      // Format recipients - only show count if > 1
+      const recipientList = votes.length
+        ? votes.map(([recipient, count], i) => {
             const countDisplay = count > 1 ? ` <span class="vote-count">(${count})</span>` : '';
-            return `<span class="santa-chip ${i === 0 ? 'top' : ''}">${santa}${countDisplay}</span>`;
+            return `<span class="recipient-chip ${i === 0 ? 'top' : ''}">${recipient}${countDisplay}</span>`;
           }).join('')
-        : '<span class="santa-chip empty">No predictions</span>';
+        : '<span class="recipient-chip empty">No predictions</span>';
 
       return `
         <tr>
-          <td class="recipient-cell">${recipient}</td>
-          <td class="santa-cell">${santaList}</td>
+          <td class="santa-cell">${santa}</td>
+          <td class="recipient-cell">${recipientList}</td>
         </tr>
       `;
     }).join('');
@@ -62,8 +63,8 @@ const LeaderboardView = {
       <table class="predictions-table">
         <thead>
           <tr>
-            <th>Recipient</th>
-            <th>Predicted Santa</th>
+            <th>Santa</th>
+            <th>Predicted Recipient</th>
           </tr>
         </thead>
         <tbody>${rows}</tbody>
@@ -75,14 +76,20 @@ const LeaderboardView = {
     document.getElementById('predictions-leaderboard').classList.add('hidden');
     document.getElementById('scores-leaderboard').classList.remove('hidden');
 
-    const { scores, details } = this.calculateScores();
+    const { scores, details, maxPossible } = this.calculateScores();
     const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
+    const confirmed = getConfirmedCount();
+    const total = state.participants.length;
+    const isComplete = confirmed === total;
 
     if (sorted.length > 0) {
       const [name, score] = sorted[0];
+      const statusText = isComplete
+        ? `${score}/${total} correct predictions!`
+        : `${score}/${confirmed} confirmed (${total - confirmed} pending)`;
       document.getElementById('winner-banner').innerHTML = `
-        <div class="winner-name">${name}</div>
-        <div class="winner-score">${score}/${state.participants.length} correct predictions!</div>
+        <div class="winner-name">${isComplete ? name : 'Reveal in progress...'}</div>
+        <div class="winner-score">${isComplete ? statusText : `${confirmed}/${total} pairings confirmed`}</div>
       `;
     }
 
@@ -118,17 +125,31 @@ const LeaderboardView = {
       return '<div class="no-details">No predictions found</div>';
     }
 
+    // Display: Santa → Recipient (matches data structure {santa: recipient})
     return `
       <div class="details-grid">
-        ${guesses.map(g => `
-          <div class="detail-row ${g.correct ? 'correct' : 'incorrect'}">
-            <span class="detail-recipient">${g.recipient}</span>
-            <span class="detail-arrow">→</span>
-            <span class="detail-guess">${g.guessed}</span>
-            <span class="detail-icon">${g.correct ? '✓' : '✗'}</span>
-            ${!g.correct ? `<span class="detail-actual">(was ${g.actual})</span>` : ''}
-          </div>
-        `).join('')}
+        ${guesses.map(g => {
+          if (g.pending) {
+            return `
+              <div class="detail-row pending">
+                <span class="detail-santa">${g.santa}</span>
+                <span class="detail-arrow">→</span>
+                <span class="detail-recipient">${g.recipient}</span>
+                <span class="detail-icon">?</span>
+                <span class="detail-actual">(unconfirmed)</span>
+              </div>
+            `;
+          }
+          return `
+            <div class="detail-row ${g.correct ? 'correct' : 'incorrect'}">
+              <span class="detail-santa">${g.santa}</span>
+              <span class="detail-arrow">→</span>
+              <span class="detail-recipient">${g.recipient}</span>
+              <span class="detail-icon">${g.correct ? '✓' : '✗'}</span>
+              ${!g.correct ? `<span class="detail-actual">(gave to ${g.actualRecipient})</span>` : ''}
+            </div>
+          `;
+        }).join('')}
       </div>
     `;
   },
@@ -138,30 +159,58 @@ const LeaderboardView = {
     const details = {};
     const predictions = state.data?.predictions || {};
     const actual = state.data?.actualPairings || {};
+    const confirmedSantas = new Set(Object.keys(actual));
+
+    // Helper: find which santa gives to this recipient (inverse lookup)
+    const findSantaForRecipient = (recipient) => {
+      return Object.keys(actual).find(santa => actual[santa] === recipient);
+    };
 
     Object.entries(predictions).forEach(([codename, data]) => {
-      const realPerson = actual[codename];
+      // Codename is the recipient name (anonymity: "Alice gives to Bob" → Alice uses "Bob")
+      // Find the santa who gives to this codename (recipient)
+      const realPerson = findSantaForRecipient(codename);
+      // Skip if this codename's santa isn't revealed yet
       if (!realPerson || !data.guesses) return;
 
       let correct = 0;
       const playerDetails = [];
 
-      Object.entries(data.guesses).forEach(([recipient, guessed]) => {
-        const isCorrect = actual[recipient] === guessed;
-        if (isCorrect) correct++;
+      // guesses: {guessedSanta: guessedRecipient}
+      Object.entries(data.guesses).forEach(([santa, recipient]) => {
+        const isPending = !confirmedSantas.has(santa);
 
-        playerDetails.push({
-          recipient,
-          guessed,
-          actual: actual[recipient],
-          correct: isCorrect
-        });
+        if (isPending) {
+          playerDetails.push({
+            santa,
+            recipient,
+            pending: true
+          });
+        } else {
+          const actualRecipient = actual[santa];
+          const isCorrect = actualRecipient === recipient;
+          if (isCorrect) correct++;
+
+          playerDetails.push({
+            santa,
+            recipient,
+            actualRecipient,
+            correct: isCorrect,
+            pending: false
+          });
+        }
       });
 
       scores[realPerson] = correct;
-      details[realPerson] = playerDetails.sort((a, b) => b.correct - a.correct);
+      // Sort: correct first, then incorrect, then pending
+      details[realPerson] = playerDetails.sort((a, b) => {
+        if (a.pending && !b.pending) return 1;
+        if (!a.pending && b.pending) return -1;
+        if (a.pending && b.pending) return 0;
+        return b.correct - a.correct;
+      });
     });
 
-    return { scores, details };
+    return { scores, details, maxPossible: confirmedSantas.size };
   }
 };

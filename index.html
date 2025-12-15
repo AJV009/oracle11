@@ -24,11 +24,51 @@
   <!-- App Container -->
   <div class="app-container">
 
-    <!-- View 1: Name Selector -->
-    <section id="selector-view" class="view active">
+    <!-- View 0: Celebration Picker -->
+    <section id="celebrations-view" class="view active">
       <div class="card glass">
         <h1 class="title festive">Oracle11</h1>
         <p class="subtitle">Secret Santa Predictions</p>
+
+        <div class="celebrations-wrapper">
+          <p class="instruction">Select a celebration to join:</p>
+          <div id="celebrations-list" class="celebrations-list">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- View 0.5: Celebration Auth -->
+    <section id="celebration-auth-view" class="view">
+      <div class="auth-modal">
+        <div class="card glass celebration-auth-card">
+          <button id="celebration-back" class="back-btn celebration-back-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+          </button>
+          <h2 id="celebration-auth-title" class="view-title">Celebration Name</h2>
+          <p class="auth-instruction">Enter the celebration password:</p>
+          <div class="input-group">
+            <input type="password" id="celebration-password" placeholder="Password" autocomplete="off">
+            <button id="celebration-login" class="btn primary">
+              Join
+            </button>
+          </div>
+          <p id="celebration-auth-error" class="error-text hidden">Invalid password</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- View 1: Name Selector -->
+    <section id="selector-view" class="view">
+      <div class="card glass">
+        <div class="celebration-header">
+          <h1 class="title festive">Oracle11</h1>
+          <p class="subtitle">Secret Santa Predictions</p>
+          <p id="current-celebration-name" class="celebration-badge"></p>
+        </div>
 
         <div class="selector-wrapper">
           <p class="instruction">Select your Christmas friend</p>
@@ -55,7 +95,13 @@
           </div>
         </div>
 
-        <div class="button-row right">
+        <div class="button-row space-between">
+          <button id="change-celebration" class="btn secondary small">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+            Change
+          </button>
           <button id="confirm-name" class="btn primary">
             Continue
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -82,14 +128,14 @@
           </div>
         </div>
 
-        <p class="matrix-instruction">For each person, select who you think is their Secret Santa:</p>
+        <p class="matrix-instruction">For each Santa, select who you think they give to:</p>
 
         <div class="matrix-container">
           <table class="prediction-matrix">
             <thead>
               <tr>
-                <th>Recipient</th>
-                <th>Secret Santa (Your Guess)</th>
+                <th>Secret Santa</th>
+                <th>Gives To (Your Guess)</th>
               </tr>
             </thead>
             <tbody id="matrix-body">
@@ -173,14 +219,14 @@
 
           <div id="admin-input-section">
             <h3 class="section-title">Enter Actual Pairings</h3>
-            <p class="section-desc">After the gift exchange, enter who actually gifted to whom:</p>
+            <p class="section-desc">After the gift exchange, enter who each Santa actually gave to:</p>
 
             <div class="matrix-container">
               <table class="prediction-matrix admin-matrix">
                 <thead>
                   <tr>
-                    <th>Recipient</th>
-                    <th>Actual Secret Santa</th>
+                    <th>Secret Santa</th>
+                    <th>Actually Gave To</th>
                   </tr>
                 </thead>
                 <tbody id="admin-matrix-body">
@@ -250,6 +296,7 @@
   <script src="js/decorations.js"></script>
   <script src="js/utils.js"></script>
   <script src="js/router.js"></script>
+  <script src="js/celebrations.js"></script>
   <script src="js/selector.js"></script>
   <script src="js/predict.js"></script>
   <script src="js/leaderboard.js"></script>

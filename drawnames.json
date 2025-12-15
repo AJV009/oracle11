@@ -1,13 +1,41 @@
 {
-  "participants": [
-    "Hainz",
-    "Hailin",
-    "Alphons",
-    "Alwina",
-    "Sneha",
-    "Sandhra",
-    "Alex",
-    "Alan",
-    "Mini"
-  ]
+  "celebrations": {
+    "christmas2024": {
+      "name": "🏡 Sandhra: Homecoming",
+      "participants": [
+        "Hainz",
+        "Hailin",
+        "Alphons",
+        "Alwina",
+        "Sneha",
+        "Sandhra",
+        "Alex",
+        "Alan",
+        "Mini"
+      ],
+      "binId": "692f234ed0ea881f400e50ec",
+      "passwordHash": "05c8b1e5aab515703364c49f2a64d813e7cdaea34dc6a07b275801e7d32da074"
+    },
+    "newyear2026": {
+      "name": "🎁 YoLo 2026 🎁",
+      "participants": [
+        "Alphons",
+        "Dipak",
+        "Nikita",
+        "Payal",
+        "Aastha",
+        "Abhishek",
+        "Piyuesh",
+        "Raj",
+        "Rashmi",
+        "Ruturaj",
+        "Sonvir",
+        "Teja",
+        "Vaibhav",
+        "Vighnesh"
+      ],
+      "binId": "693fb467ae596e708f9ae05d",
+      "passwordHash": "5b9d639c316d59216b8c82e7d27426c1abb7b95daee2f4daf4ae8b9339a16422"
+    }
+  }
 }
