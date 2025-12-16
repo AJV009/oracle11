@@ -3,7 +3,7 @@
  */
 
 // Bump this to clear all user caches on next load
-const CACHE_VERSION = 5;
+const CACHE_VERSION = 7;
 
 (function checkCacheVersion() {
   const stored = localStorage.getItem('oracle11_version');

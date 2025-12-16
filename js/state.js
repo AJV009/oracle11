@@ -72,13 +72,6 @@ function getConfirmedCount() {
   return Object.keys(state.data?.actualPairings || {}).length;
 }
 
-// Find which santa gives to a recipient (inverse lookup)
-// Used for anonymity: codename is recipient, need to find their santa
-function getSantaForRecipient(recipient) {
-  const actual = state.data?.actualPairings || {};
-  return Object.keys(actual).find(santa => actual[santa] === recipient) || null;
-}
-
 // Check if leaderboard is accessible to participants
 // Rules:
 // - If admin set leaderboardVisible to true -> show

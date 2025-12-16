@@ -4,11 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Oracle11 is a Secret Santa prediction game supporting multiple celebrations. Players predict who gifted whom, using their giftee's name as a codename for anonymity. After the reveal, correct guesses earn points.
+Oracle11 is a Secret Santa prediction game supporting multiple celebrations. Players predict who gifted whom, and after the reveal, correct guesses earn points.
 
-**Multi-Celebration Support**: The app supports multiple celebrations, each with its own participants, JSONBin storage, and password protection. Users select a celebration, authenticate, then proceed to make predictions.
-
-**Anonymity Mechanism**: If Alice gifts to Bob, Alice uses "Bob" as her identifier when submitting predictions. This ensures no one (including admin) knows who submitted what until actual pairings are revealed.
+**Multi-Celebration Support**: The app supports multiple celebrations, each with its own participants, JSONBin storage, and password protection. Users select a celebration, authenticate, select their name, then proceed to make predictions.
 
 ## Development
 
@@ -37,7 +35,7 @@ JSONBin.io (per-celebration backend) <-> API module <-> State <-> Views
 |------|---------|
 | `config.js` | JSONBin API key (shared), admin password hash |
 | `drawnames.json` | Celebrations config with participants, binIds, password hashes |
-| `js/state.js` | Global state object, celebration helpers, shuffle utility, `getSantaForRecipient()` |
+| `js/state.js` | Global state object, celebration helpers, shuffle utility |
 | `js/api.js` | JSONBin CRUD with retry logic and celebration-specific caching |
 | `js/router.js` | Hash-based routing with celebration guards |
 | `js/app.js` | Bootstrap/initialization with session restoration |
@@ -47,7 +45,7 @@ JSONBin.io (per-celebration backend) <-> API module <-> State <-> Views
 | Module | Route | Purpose |
 |--------|-------|---------|
 | `js/celebrations.js` | #celebrations, #celebration-auth | Celebration picker and password auth |
-| `js/selector.js` | #selector | Name carousel for codename selection |
+| `js/selector.js` | #selector | Name carousel for player name selection |
 | `js/predict.js` | #predict | NxN prediction matrix form |
 | `js/leaderboard.js` | #leaderboard | Aggregated predictions pre-reveal, scores post-reveal |
 | `js/admin.js` | #admin | Password-protected; enter actual pairings, declare winners, reset |
@@ -86,7 +84,7 @@ JSONBin.io (per-celebration backend) <-> API module <-> State <-> Views
 ```json
 {
   "predictions": {
-    "CodenameA": {
+    "Alice": {
       "timestamp": "ISO-date",
       "guesses": { "GuessedSanta": "GuessedRecipient", ... }
     }
@@ -99,8 +97,8 @@ JSONBin.io (per-celebration backend) <-> API module <-> State <-> Views
 
 Example: If Alice gives to Bob:
 - `actualPairings: { "Alice": "Bob" }` (Alice → Bob)
-- Alice uses "Bob" as codename for anonymity
-- Her predictions stored under `predictions["Bob"].guesses`
+- Alice selects her own name "Alice" when making predictions
+- Her predictions stored under `predictions["Alice"].guesses`
 
 ## Important Behaviors
 
@@ -120,7 +118,7 @@ Example: If Alice gives to Bob:
     ↓
 #celebration-auth (enter password)
     ↓
-#selector (select codename)
+#selector (select your name)
     ↓
 #predict (make predictions)
     ↓

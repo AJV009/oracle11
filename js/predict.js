@@ -11,7 +11,8 @@ const PredictView = {
     document.getElementById('current-codename').textContent = state.currentCodename;
 
     // Shuffle both rows (Santas) and dropdown options (Recipients)
-    this.shuffledSantas = shuffle(state.participants);
+    // Remove current player from Santa list (they can't predict their own giving)
+    this.shuffledSantas = shuffle(state.participants.filter(p => p !== state.currentCodename));
     this.shuffledRecipients = shuffle(state.participants);
 
     this.render();
@@ -45,11 +46,52 @@ const PredictView = {
         </td>
       </tr>
     `).join('');
+
+    // Enforce unique selections based on existing guesses
+    this.updateDropdownOptions();
   },
 
   bindEvents() {
     document.getElementById('submit-predictions').addEventListener('click', () => this.submit());
     document.getElementById('view-leaderboard').addEventListener('click', () => Router.navigate('leaderboard'));
+
+    // Listen for dropdown changes to enforce unique recipient selections
+    this.matrixBody.addEventListener('change', (e) => {
+      if (e.target.tagName === 'SELECT') {
+        this.updateDropdownOptions();
+      }
+    });
+  },
+
+  updateDropdownOptions() {
+    const selects = this.matrixBody.querySelectorAll('select');
+
+    // Collect all currently selected recipients
+    const selectedRecipients = new Set();
+    selects.forEach(select => {
+      if (select.value) {
+        selectedRecipients.add(select.value);
+      }
+    });
+
+    // Update each dropdown to exclude recipients selected elsewhere
+    selects.forEach(select => {
+      const currentValue = select.value;
+
+      // Build list of available recipients for this dropdown
+      const availableRecipients = this.shuffledRecipients.filter(recipient => {
+        // Include if: not selected elsewhere OR is this dropdown's current selection
+        return !selectedRecipients.has(recipient) || recipient === currentValue;
+      });
+
+      // Rebuild options while preserving current selection
+      select.innerHTML = `
+        <option value="">Select...</option>
+        ${availableRecipients.map(recipient =>
+          `<option value="${recipient}" ${recipient === currentValue ? 'selected' : ''}>${recipient}</option>`
+        ).join('')}
+      `;
+    });
   },
 
   async submit() {

@@ -161,17 +161,9 @@ const LeaderboardView = {
     const actual = state.data?.actualPairings || {};
     const confirmedSantas = new Set(Object.keys(actual));
 
-    // Helper: find which santa gives to this recipient (inverse lookup)
-    const findSantaForRecipient = (recipient) => {
-      return Object.keys(actual).find(santa => actual[santa] === recipient);
-    };
-
-    Object.entries(predictions).forEach(([codename, data]) => {
-      // Codename is the recipient name (anonymity: "Alice gives to Bob" → Alice uses "Bob")
-      // Find the santa who gives to this codename (recipient)
-      const realPerson = findSantaForRecipient(codename);
-      // Skip if this codename's santa isn't revealed yet
-      if (!realPerson || !data.guesses) return;
+    Object.entries(predictions).forEach(([playerName, data]) => {
+      // playerName is the actual person who submitted these predictions
+      if (!data.guesses) return;
 
       let correct = 0;
       const playerDetails = [];
@@ -201,9 +193,9 @@ const LeaderboardView = {
         }
       });
 
-      scores[realPerson] = correct;
+      scores[playerName] = correct;
       // Sort: correct first, then incorrect, then pending
-      details[realPerson] = playerDetails.sort((a, b) => {
+      details[playerName] = playerDetails.sort((a, b) => {
         if (a.pending && !b.pending) return 1;
         if (!a.pending && b.pending) return -1;
         if (a.pending && b.pending) return 0;

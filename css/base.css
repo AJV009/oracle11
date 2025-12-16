@@ -111,3 +111,14 @@ body {
   border: 1px solid rgba(220, 38, 38, 0.2);
   border-radius: var(--radius-sm);
 }
+
+.matrix-note {
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+  margin-bottom: 16px;
+  padding: 8px 12px;
+  background: rgba(251, 191, 36, 0.1);
+  border: 1px solid rgba(251, 191, 36, 0.2);
+  border-radius: var(--radius-sm);
+}
